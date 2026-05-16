@@ -1,0 +1,45 @@
+# Env y secretos
+.env
+*.env
+
+# Base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Excel con datos reales (extractos bancarios, libro3, padron)
+*.xlsx
+*.xls
+~$*
+
+# Excepcion: fixtures de test sinteticos
+!tests/fixtures/*.xlsx
+!tests/fixtures/*.xls
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+.coverage
