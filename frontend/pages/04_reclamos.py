@@ -144,8 +144,8 @@ def modal_ia(reclamo: dict):
 # ------------------------------------------------------------------
 # Tabla de reclamos
 # ------------------------------------------------------------------
-COLS = [2, 4, 1.2, 1.2, 1.2, 1, 1, 1]
-LABELS = ["Cliente", "Descripcion", "Inicio", "Cierre", "Estado", "Ver", "Resp.", "IA"]
+COLS = [2, 4, 1.2, 1.2, 1.2, 0.9, 1.2, 0.9]
+LABELS = ["Cliente", "Descripcion", "Inicio", "Cierre", "Estado", "Ver", "Resp", "IA"]
 
 headers = st.columns(COLS)
 for col, label in zip(headers, LABELS):
@@ -164,7 +164,7 @@ for r in reclamos:
 
     if cols[5].button("Ver", key=f"hist_{r['id']}"):
         modal_historial(r)
-    if r["activo"] and cols[6].button("Resp.", key=f"resp_{r['id']}"):
+    if r["activo"] and cols[6].button("Resp", key=f"resp_{r['id']}"):
         modal_responder(r)
     if cols[7].button("IA", key=f"ia_{r['id']}"):
         modal_ia(r)

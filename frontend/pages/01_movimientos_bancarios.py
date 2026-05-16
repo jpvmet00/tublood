@@ -9,7 +9,7 @@ import os
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 inject_css()
-st.title("Cargar archivos")
+st.title("Cargar Movimientos Bancarios")
 
 # ------------------------------------------------------------------
 # Pre-validacion: verificar padron y facturas antes de procesar banco
@@ -35,7 +35,7 @@ if not _padron_ok or not _facturas_ok:
     with col_ch1:
         st.markdown(f"{'[x]' if _padron_ok else '[ ]'} **Padron de clientes** (Datos Maestros)")
     with col_ch2:
-        st.markdown(f"{'[x]' if _facturas_ok else '[ ]'} **Facturas pendientes** (Libro3 en Datos Maestros)")
+        st.markdown(f"{'[x]' if _facturas_ok else '[ ]'} **Facturas desde ERP** (Datos Maestros > Carga de Facturas)")
     if not _padron_ok:
         st.error("Sin padron no es posible conciliar: los movimientos no se pueden vincular a clientes.")
 

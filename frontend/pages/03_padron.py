@@ -9,15 +9,15 @@ import os
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 inject_css()
-st.title("Datos maestros")
+st.title("Datos Maestros")
 
 # ------------------------------------------------------------------
-# 1. Facturas pendientes (Libro3)
+# 1. Carga de Facturas desde ERP
 # ------------------------------------------------------------------
-st.header("1. Facturas pendientes (Libro3.xlsx)")
-st.caption("Sube el archivo Libro3 con la hoja 'pendientes'. Hace upsert: actualiza si ya existe la misma factura.")
+st.header("1. Carga de Facturas desde ERP")
+st.caption("Exporta las facturas pendientes desde tu ERP y subelas aqui. La hoja debe llamarse 'pendientes'. Hace upsert: actualiza si ya existe la misma factura.")
 
-libro_file = st.file_uploader("Seleccionar Libro3.xlsx", type=["xlsx"], key="libro")
+libro_file = st.file_uploader("Seleccionar archivo de facturas (.xlsx)", type=["xlsx"], key="libro")
 if libro_file and st.button("Subir facturas", type="primary"):
     with st.spinner("Procesando..."):
         resp = httpx.post(
@@ -88,9 +88,9 @@ if resp_f.status_code == 200 and resp_f.json():
 st.divider()
 
 # ------------------------------------------------------------------
-# 2. Padron de clientes
+# 2. Padron de Clientes
 # ------------------------------------------------------------------
-st.header("2. Padron de clientes")
+st.header("2. Padron de Clientes")
 st.caption(
     "El archivo debe tener columna CUIT. Opcionales: RAZON_SOCIAL, CLIENTE_ID, "
     "MAIL_RECLAMO_FACTURA, MAIL_ATENCION_CLIENTE."

@@ -28,7 +28,21 @@ def _post(path: str, **kw):
     return httpx.post(f"{API_URL}{path}", timeout=60, **kw)
 
 
-st.title("Dashboard de conciliacion")
+st.title("Conciliacion")
+
+col_nav, _ = st.columns([1, 3])
+with col_nav:
+    st.markdown(
+        """<a href="/movimientos_bancarios" target="_self"
+           style="display:inline-block;background:linear-gradient(135deg,#1565C0,#0288D1);
+                  color:white;font-weight:600;padding:8px 18px;border-radius:6px;
+                  text-decoration:none;font-size:0.88rem;">
+            Cargar movimientos bancarios
+        </a>""",
+        unsafe_allow_html=True,
+    )
+
+st.divider()
 
 # --- Reset DB ---
 with st.expander("Administracion", expanded=False):
