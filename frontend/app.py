@@ -232,6 +232,28 @@ st.markdown(
 
 st.markdown(
     """
+    <div style="background:#0d1117;border-radius:12px;padding:24px;margin-top:16px;font-family:monospace;">
+    <div style="color:#58a6ff;font-size:0.75rem;margin-bottom:14px;
+                text-transform:uppercase;letter-spacing:0.1em;">
+        Apagar Docker &mdash; desde la carpeta TUBLOOD/
+    </div>
+    <div style="color:#8b949e;font-size:0.8rem;margin-bottom:3px;"># Detener los contenedores (mantiene los datos)</div>
+    <div style="color:#e6edf3;font-size:0.87rem;margin-bottom:16px;
+                background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:4px;">
+        docker-compose down
+    </div>
+    <div style="color:#8b949e;font-size:0.8rem;margin-bottom:3px;"># Detener y eliminar datos (reset completo)</div>
+    <div style="color:#e6edf3;font-size:0.87rem;
+                background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:4px;">
+        docker-compose down -v
+    </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
     <div style="background:rgba(21,101,192,0.06);border:1px solid rgba(21,101,192,0.2);
                 border-radius:8px;padding:14px 20px;margin-top:14px;font-size:0.87rem;color:#444;">
         <strong>Sin Docker</strong> &mdash; requiere Python 3.11+.<br>
