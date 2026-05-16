@@ -1,10 +1,14 @@
 import streamlit as st
+import sys, os as _os
+sys.path.insert(0, _os.path.dirname(_os.path.dirname(__file__)))
+from style import inject_css
 import httpx
 import pandas as pd
 import os
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
+inject_css()
 _dialog = getattr(st, "dialog", getattr(st, "experimental_dialog", None))
 
 

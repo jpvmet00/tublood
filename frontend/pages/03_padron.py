@@ -1,10 +1,14 @@
 import streamlit as st
+import sys, os as _os
+sys.path.insert(0, _os.path.dirname(_os.path.dirname(__file__)))
+from style import inject_css
 import httpx
 import pandas as pd
 import os
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
+inject_css()
 st.title("Datos maestros")
 
 # ------------------------------------------------------------------
@@ -65,9 +69,9 @@ if resp_f.status_code == 200 and resp_f.json():
 
     def _row_color(row):
         if row.get("Estado") == "cobrado":
-            return ["background-color: #1a3a1a"] * len(row)
+            return ["background-color: rgba(27,94,32,0.25)"] * len(row)
         if row.get("Vencida"):
-            return ["background-color: #3a1a1a"] * len(row)
+            return ["background-color: rgba(183,28,28,0.25)"] * len(row)
         return [""] * len(row)
 
     st.dataframe(

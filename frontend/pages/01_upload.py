@@ -1,17 +1,51 @@
 import streamlit as st
+import sys, os as _os
+sys.path.insert(0, _os.path.dirname(_os.path.dirname(__file__)))
+from style import inject_css
 import httpx
 import pandas as pd
 import os
 
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
+inject_css()
 st.title("Cargar archivos")
+
+# ------------------------------------------------------------------
+# Pre-validacion: verificar padron y facturas antes de procesar banco
+# ------------------------------------------------------------------
+_padron_ok = False
+_facturas_ok = False
+
+try:
+    _rp = httpx.get(f"{API_URL}/upload/padron", timeout=10)
+    _padron_ok = _rp.status_code == 200 and bool(_rp.json())
+except Exception:
+    pass
+
+try:
+    _rf = httpx.get(f"{API_URL}/upload/facturas", timeout=10)
+    _facturas_ok = _rf.status_code == 200 and bool(_rf.json())
+except Exception:
+    pass
+
+if not _padron_ok or not _facturas_ok:
+    st.warning("Antes de procesar extractos del banco, asegurate de haber cargado:")
+    col_ch1, col_ch2 = st.columns(2)
+    with col_ch1:
+        st.markdown(f"{'[x]' if _padron_ok else '[ ]'} **Padron de clientes** (Datos Maestros)")
+    with col_ch2:
+        st.markdown(f"{'[x]' if _facturas_ok else '[ ]'} **Facturas pendientes** (Libro3 en Datos Maestros)")
+    if not _padron_ok:
+        st.error("Sin padron no es posible conciliar: los movimientos no se pueden vincular a clientes.")
+
+st.divider()
 
 # ------------------------------------------------------------------
 # Extracto del banco
 # ------------------------------------------------------------------
 st.header("Extracto del banco")
-st.caption("Soportado: Banco Macro (.xls/.xlsx) y Banco Galicia (.xlsx). Podés subir los dos a la vez.")
+st.caption("Soportado: Banco Macro (.xls/.xlsx) y Banco Galicia (.xlsx). Podes subir los dos a la vez.")
 
 banco_files = st.file_uploader(
     "Seleccionar archivos del banco",
