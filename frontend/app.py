@@ -157,10 +157,10 @@ with col_steps:
             </li>
             <li>Abri Docker Desktop y espera a que este corriendo</li>
             <li>Clona el repositorio o descarga el ZIP</li>
-            <li>Crea el archivo <code>.env</code> con tu clave de OpenAI<br>
-                <code style="font-size:0.8rem;">OPENAI_API_KEY=sk-proj-...</code>
-            </li>
-            <li>Ejecuta el comando en la terminal</li>
+            <li>En la carpeta del proyecto, crea el archivo <code>.env</code>
+                con las variables de configuracion (ver abajo)</li>
+            <li>Abri una terminal <strong>dentro de la carpeta TUBLOOD</strong>
+                y ejecuta el comando de la derecha</li>
             <li>Abri el navegador en <code>localhost:8501</code></li>
         </ol>
         </div>
@@ -174,24 +174,24 @@ with col_cmd:
         <div style="background:#0d1117;border-radius:12px;padding:28px;font-family:monospace;height:100%;box-sizing:border-box;">
         <div style="color:#58a6ff;font-size:0.75rem;margin-bottom:14px;
                     text-transform:uppercase;letter-spacing:0.1em;font-family:monospace;">
-            Terminal
+            Terminal &mdash; desde la carpeta TUBLOOD/
         </div>
         <div style="color:#8b949e;font-size:0.8rem;margin-bottom:3px;">
-            # Crear configuracion
+            # Ubicarte en la carpeta del proyecto
         </div>
         <div style="color:#e6edf3;font-size:0.87rem;margin-bottom:18px;
                     background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:4px;">
-            echo "OPENAI_API_KEY=sk-proj-..." &gt; .env
+            cd ruta/a/TUBLOOD
         </div>
         <div style="color:#8b949e;font-size:0.8rem;margin-bottom:3px;">
-            # Construir y levantar
+            # Construir y levantar todos los servicios
         </div>
         <div style="color:#e6edf3;font-size:0.87rem;margin-bottom:22px;
                     background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:4px;">
             docker-compose up --build
         </div>
         <div style="color:#8b949e;font-size:0.8rem;margin-bottom:8px;">
-            # Accesos:
+            # Accesos una vez levantado:
         </div>
         <div style="color:#3fb950;font-size:0.87rem;margin-bottom:4px;">
             Frontend &nbsp; http://localhost:8501
@@ -206,11 +206,37 @@ with col_cmd:
 
 st.markdown(
     """
+    <div style="background:#0d1117;border-radius:12px;padding:24px;margin-top:16px;font-family:monospace;">
+    <div style="color:#58a6ff;font-size:0.75rem;margin-bottom:14px;
+                text-transform:uppercase;letter-spacing:0.1em;">
+        Archivo .env &mdash; crear en la carpeta TUBLOOD/
+    </div>
+    <div style="color:#8b949e;font-size:0.8rem;margin-bottom:4px;"># Base de datos (no modificar para Docker)</div>
+    <div style="color:#e6edf3;font-size:0.87rem;margin-bottom:14px;">DATABASE_URL=sqlite:////app/data/tublood.db</div>
+
+    <div style="color:#8b949e;font-size:0.8rem;margin-bottom:4px;"># Clave de OpenAI para el agente de IA en reclamos</div>
+    <div style="color:#e6edf3;font-size:0.87rem;margin-bottom:14px;">OPENAI_API_KEY=<span style="color:#ff7b72;">TU_CLAVE_OPENAI</span></div>
+
+    <div style="color:#8b949e;font-size:0.8rem;margin-bottom:4px;"># Tolerancia de conciliacion (default 10% = 0.10)</div>
+    <div style="color:#e6edf3;font-size:0.87rem;margin-bottom:14px;">TOLERANCE_PCT=0.10</div>
+
+    <div style="color:#8b949e;font-size:0.8rem;margin-bottom:4px;"># Dias minimos de mora para considerar factura vencida</div>
+    <div style="color:#e6edf3;font-size:0.87rem;margin-bottom:14px;">MORA_MINIMA=1</div>
+
+    <div style="color:#8b949e;font-size:0.8rem;margin-bottom:4px;"># Dias de cooldown entre mails de cobranza al mismo cliente</div>
+    <div style="color:#e6edf3;font-size:0.87rem;">COOLDOWN_DIAS=7</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
     <div style="background:rgba(21,101,192,0.06);border:1px solid rgba(21,101,192,0.2);
                 border-radius:8px;padding:14px 20px;margin-top:14px;font-size:0.87rem;color:#444;">
         <strong>Sin Docker</strong> &mdash; requiere Python 3.11+.<br>
         Backend: <code>uvicorn app.main:app --port 8000 --reload</code><br>
-        Frontend: <code>streamlit run frontend/app.py</code> (en otra terminal)
+        Frontend: <code>streamlit run frontend/app.py</code> (en otra terminal, ambos desde la carpeta TUBLOOD/)
     </div>
     """,
     unsafe_allow_html=True,
