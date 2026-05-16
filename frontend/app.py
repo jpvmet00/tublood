@@ -220,58 +220,67 @@ st.divider()
 
 # ── Imagenes de producto ───────────────────────────────────────────────────────
 st.markdown("## Lineas de producto")
-st.caption(
-    "Para agregar imagenes: copia los archivos .jpg/.png a frontend/static/ "
-    "y reemplaza los bloques de placeholder con st.image('frontend/static/imagen.jpg')."
-)
 
-_img_card = """
-<div style="border:1px solid #e0e0e0;border-radius:12px;overflow:hidden;
-            background:#f8f9fa;text-align:center;">
-    <div style="
-        background: linear-gradient(135deg, {grad_a} 0%, {grad_b} 100%);
-        height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    ">
-        <div style="color:white;font-size:0.85rem;opacity:0.8;letter-spacing:0.05em;">
-            {placeholder}
-        </div>
-    </div>
-    <div style="padding:18px;">
-        <div style="font-weight:700;font-size:1rem;color:#222;margin-bottom:6px;">{title}</div>
-        <div style="font-size:0.85rem;color:#666;line-height:1.55;">{desc}</div>
-    </div>
-</div>"""
+_static = os.path.join(os.path.dirname(__file__), "static")
 
-img_col1, img_col2 = st.columns(2)
+_label_style = """
+    font-weight:700;font-size:0.95rem;color:#222;
+    margin:12px 0 4px 0;text-align:center;
+"""
+_desc_style = "font-size:0.82rem;color:#666;line-height:1.5;text-align:center;margin-bottom:8px;"
 
-with img_col1:
-    st.markdown(
-        _img_card.format(
-            grad_a="#1565C0", grad_b="#0288D1",
-            placeholder="Insertar imagen de producto",
-            title="Linea Venopuncion",
-            desc="Agujas de toma multiple, mariposas y accesorios para extraccion de sangre venosa.",
-        ),
-        unsafe_allow_html=True,
-    )
-    if os.path.exists(os.path.join(os.path.dirname(__file__), "static", "venopuncion.jpg")):
-        st.image("frontend/static/venopuncion.jpg", use_container_width=True)
+prod_col1, prod_col2, prod_col3 = st.columns(3)
 
-with img_col2:
-    st.markdown(
-        _img_card.format(
-            grad_a="#0288D1", grad_b="#26C6DA",
-            placeholder="Insertar imagen de producto",
-            title="Linea Plasma Rico en Plaquetas",
-            desc="Tubos y kits de centrifugacion para la obtencion y procesamiento de PRP.",
-        ),
-        unsafe_allow_html=True,
-    )
-    if os.path.exists(os.path.join(os.path.dirname(__file__), "static", "prp.jpg")):
-        st.image("frontend/static/prp.jpg", use_container_width=True)
+with prod_col1:
+    img_path = os.path.join(_static, "Tubos.png")
+    if os.path.exists(img_path):
+        st.markdown(
+            """<div style="border:1px solid #e0e0e0;border-radius:12px;
+                          overflow:hidden;padding:20px;background:#fafafa;">""",
+            unsafe_allow_html=True,
+        )
+        st.image(img_path, use_container_width=True)
+        st.markdown(
+            f'<div style="{_label_style}">Tubos EDTA</div>'
+            f'<div style="{_desc_style}">Tapas violeta — hematologia y tipificacion. '
+            "Disponibles en 3, 4 y 9 ml.</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown("</div>", unsafe_allow_html=True)
+
+with prod_col2:
+    img_path = os.path.join(_static, "Tubos2.png")
+    if os.path.exists(img_path):
+        st.markdown(
+            """<div style="border:1px solid #e0e0e0;border-radius:12px;
+                          overflow:hidden;padding:20px;background:#fafafa;">""",
+            unsafe_allow_html=True,
+        )
+        st.image(img_path, use_container_width=True)
+        st.markdown(
+            f'<div style="{_label_style}">Linea Carestainer</div>'
+            f'<div style="{_desc_style}">Heparina, Coagulacion y Glucosa. '
+            "Tubos de recoleccion para bioquimica y hemostasia.</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown("</div>", unsafe_allow_html=True)
+
+with prod_col3:
+    img_path = os.path.join(_static, "prod.png")
+    if os.path.exists(img_path):
+        st.markdown(
+            """<div style="border:1px solid #e0e0e0;border-radius:12px;
+                          overflow:hidden;padding:20px;background:#fafafa;">""",
+            unsafe_allow_html=True,
+        )
+        st.image(img_path, use_container_width=True)
+        st.markdown(
+            f'<div style="{_label_style}">Kit Berighto</div>'
+            f'<div style="{_desc_style}">Kit de diagnostico rapido con reactivos '
+            "y accesorios para laboratorio clinico.</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown("</div>", unsafe_allow_html=True)
 
 st.divider()
 
