@@ -6,6 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY frontend/ ./frontend/
+COPY .streamlit/ ./.streamlit/
 
 ENV PYTHONUNBUFFERED=1
 ENV API_URL=http://api:8000

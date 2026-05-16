@@ -13,6 +13,12 @@ services:
       - DATABASE_URL=sqlite:////app/data/tublood.db
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   frontend:
     build:
@@ -23,7 +29,8 @@ services:
     environment:
       - API_URL=http://api:8000
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
