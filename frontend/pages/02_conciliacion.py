@@ -24,6 +24,10 @@ def _get(path: str):
         return None
 
 
+def _get_raw(path: str):
+    return httpx.get(f"{API_URL}{path}", timeout=15)
+
+
 def _post(path: str, **kw):
     return httpx.post(f"{API_URL}{path}", timeout=60, **kw)
 
@@ -104,12 +108,50 @@ if vencidas:
     if df.empty:
         st.info("No hay facturas vencidas con los filtros actuales.")
     else:
+        # Consultar riesgo crediticio (solo cache, sin llamadas externas en cada render)
+        cuits_unicos = [c for c in df["cuit"].dropna().unique().tolist() if c]
+        riesgo_map = {}
+        if cuits_unicos:
+            try:
+                resp_r = _post("/riesgo/bulk", json=cuits_unicos)
+                if resp_r.status_code == 200:
+                    riesgo_map = resp_r.json()
+            except Exception:
+                pass
+
+        def _label_riesgo(cuit):
+            if not cuit or cuit not in riesgo_map:
+                return "Sin consultar"
+            r = riesgo_map[cuit]
+            return f"[{r['situacion']}] {r['label']}"
+
+        df["riesgo_bcra"] = df["cuit"].apply(_label_riesgo)
         df["solicitar_pago"] = False
+
+        # Alerta de CUITs con situacion >= 3
+        cuits_alerta = [c for c, r in riesgo_map.items() if r.get("alerta")]
+        if cuits_alerta:
+            clientes_alerta = df[df["cuit"].isin(cuits_alerta)]["razon_social"].dropna().unique()
+            st.warning(
+                f"Riesgo crediticio BCRA: {len(cuits_alerta)} cliente(s) con situacion 3 o superior — "
+                + ", ".join(clientes_alerta[:5])
+            )
+
+        col_act, _ = st.columns([1, 4])
+        with col_act:
+            if st.button("Actualizar riesgo BCRA", help="Consulta el BCRA para todos los CUITs de la lista"):
+                with st.spinner("Consultando BCRA..."):
+                    for cuit in cuits_unicos:
+                        try:
+                            _get_raw(f"/riesgo/{cuit}?forzar=true")
+                        except Exception:
+                            pass
+                st.rerun()
 
         cols_order = [c for c in [
             "solicitar_pago", "nro_factura", "razon_social", "cliente_id",
             "cuit", "saldo", "fecha_vencimiento", "dias_vencida",
-            "condicion_venta", "reclamo_activo"
+            "condicion_venta", "reclamo_activo", "riesgo_bcra"
         ] if c in df.columns]
 
         edited = st.data_editor(
@@ -119,6 +161,7 @@ if vencidas:
                 "reclamo_activo": st.column_config.CheckboxColumn("Reclamo activo", disabled=True),
                 "saldo": st.column_config.NumberColumn("Saldo $", format="$ %.0f"),
                 "dias_vencida": st.column_config.NumberColumn("Dias vencida"),
+                "riesgo_bcra": st.column_config.TextColumn("Riesgo BCRA", disabled=True),
             },
             disabled=[c for c in cols_order if c != "solicitar_pago"],
             use_container_width=True,

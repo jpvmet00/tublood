@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.db.session import init_db
-from app.routers import upload, conciliation, reclamos, admin
+from app.routers import upload, conciliation, reclamos, admin, credit_risk
 from app.config import settings
 
 
@@ -22,6 +22,7 @@ app.include_router(upload.router)
 app.include_router(conciliation.router)
 app.include_router(reclamos.router)
 app.include_router(admin.router)
+app.include_router(credit_risk.router)
 
 
 @app.get("/health")

@@ -81,6 +81,18 @@ class Padron(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class RiesgoCrediticio(Base):
+    __tablename__ = "riesgo_crediticio"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cuit = Column(String(20), nullable=False, index=True)
+    situacion = Column(Integer, nullable=False)  # 1-6 BCRA, 0=error consulta
+    denominacion = Column(String(300), nullable=True)
+    detalle = Column(Text, nullable=True)        # JSON completo de la respuesta BCRA
+    activo = Column(Boolean, default=True)       # solo la consulta mas reciente es True
+    fecha_consulta = Column(DateTime, default=datetime.utcnow)
+
+
 class Reclamo(Base):
     __tablename__ = "reclamos"
 

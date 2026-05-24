@@ -139,7 +139,56 @@ if resp_p.status_code == 200:
         if solo_sin_cliente:
             df_p = df_p[df_p["cliente_id"].isna() | (df_p["cliente_id"] == "")]
 
+        # Enriquecer con riesgo crediticio cacheado
+        cuits_padron = [c for c in df_p["cuit"].dropna().tolist() if c]
+        riesgo_padron = {}
+        if cuits_padron:
+            try:
+                rr = httpx.post(f"{API_URL}/riesgo/bulk", json=cuits_padron, timeout=10)
+                if rr.status_code == 200:
+                    riesgo_padron = rr.json()
+            except Exception:
+                pass
+
+        df_p["riesgo_bcra"] = df_p["cuit"].apply(
+            lambda c: f"[{riesgo_padron[c]['situacion']}] {riesgo_padron[c]['label']}"
+            if c in riesgo_padron else "Sin consultar"
+        )
+
         st.dataframe(df_p, use_container_width=True, hide_index=True)
         st.caption(f"{len(df_p)} entradas mostradas de {len(entries)} totales")
+
+        st.divider()
+        st.subheader("Consulta de riesgo crediticio BCRA")
+        st.caption("Consulta gratuita al Banco Central. Resultado se cachea 24 horas.")
+
+        col_cuit_q, col_btn_q = st.columns([2, 1])
+        with col_cuit_q:
+            cuit_buscar = st.text_input("CUIT a consultar", placeholder="30717199020")
+        with col_btn_q:
+            st.markdown("<div style='margin-top:28px'></div>", unsafe_allow_html=True)
+            consultar_btn = st.button("Consultar BCRA", type="primary")
+
+        if consultar_btn and cuit_buscar.strip():
+            with st.spinner("Consultando BCRA..."):
+                resp_riesgo = httpx.get(
+                    f"{API_URL}/riesgo/{cuit_buscar.strip()}?forzar=true", timeout=15
+                )
+            if resp_riesgo.status_code == 200:
+                r = resp_riesgo.json()
+                color_map = {"verde": "success", "amarillo": "warning", "rojo": "error", "gris": "info"}
+                fn = getattr(st, color_map.get(r["color"], "info"))
+                fn(
+                    f"CUIT {r['cuit']} — Situacion {r['situacion']}: **{r['label']}**"
+                    + (f" | {r['denominacion']}" if r['denominacion'] else "")
+                    + f" | Consultado: {r['fecha_consulta']}"
+                )
+                if r["alerta"]:
+                    st.warning(
+                        "Este cliente tiene situacion crediticia irregular en el BCRA. "
+                        "Se mostrara una alerta en la seccion de Conciliacion."
+                    )
+            else:
+                st.error(f"Error al consultar: {resp_riesgo.text}")
 else:
     st.error(f"No se pudo cargar el padron: {resp_p.status_code}")
