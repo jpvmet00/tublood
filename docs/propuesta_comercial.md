@@ -2,7 +2,7 @@
 
 ## El problema
 
-Toda empresa que vende a credito enfrenta la misma friccion operativa: los pagos llegan al banco, pero cruzarlos con las facturas correctas es un trabajo manual, lento y propenso a errores.
+Friccion operativa: los pagos llegan al banco, pero cruzarlos con las facturas correctas es un trabajo manual, lento y propenso a errores.
 
 Para TUBLOOD SA esto se traduce en:
 
@@ -60,7 +60,7 @@ Un agente de inteligencia artificial analiza el historial del reclamo y el compo
 
 El sistema registra cada interaccion (mail enviado, llamada realizada) para que el historial sea completo y auditabie.
 
-### 4. Dashboard financiero ejecutivo
+### 4. Dashboard financiero ejecutivo 
 
 Panel de indicadores clave en tiempo real:
 
@@ -92,7 +92,23 @@ La integracion es transparente para el usuario: los datos siempre estan actualiz
 
 Si el ERP no provee ciertos datos (telefono de contacto, mail de reclamo financiero), el sistema permite completarlos manualmente y los mantiene sincronizados.
 
-### 6. Soporte para multiples bancos
+### 6. Control de retenciones impositivas
+
+Cuando un cliente es agente de retencion designado por AFIP, el pago que deposita es menor que el total de la factura: retiene IVA, Ganancias e Ingresos Brutos, y entrega una constancia por la diferencia.
+
+El sistema registra para cada cliente si aplica retenciones y a que tasas. Al conciliar, calcula el pago neto esperado y matchea contra ese monto en lugar del total de la factura. La diferencia queda registrada como retencion recibida con su numero de constancia, disponible para el area contable.
+
+Sin este modulo, las facturas de clientes que son agentes de retencion (hospitales publicos, grandes cadenas) nunca concilian automaticamente porque la diferencia supera el margen de tolerancia.
+
+### 7. Alerta de riesgo crediticio
+
+Antes de aprobar una conciliacion o al gestionar una deuda vencida, el sistema consulta automaticamente la situacion crediticia del CUIT en la Central de Deudores del Banco Central de la Republica Argentina.
+
+La consulta devuelve una situacion del 1 (cliente normal) al 6 (irrecuperable) y el detalle de deudas por entidad financiera. El sistema muestra un semaforo en la vista de facturas vencidas y emite una advertencia si el cliente esta en situacion irregular antes de que el equipo tome una decision de credito o cobranza.
+
+Para clientes que requieran un analisis mas profundo (historial comercial completo, scoring, juicios), se puede incorporar la API de Nosis como fuente adicional.
+
+### 8. Soporte para multiples bancos
 
 Ademas de Banco Macro y Banco Galicia, el sistema incluye un **modulo de configuracion de bancos** que permite parametrizar el formato de un nuevo extracto bancario sin necesidad de desarrollo. El equipo tecnico completa un formulario indicando las columnas relevantes del archivo y el sistema aprende el formato.
 
@@ -100,14 +116,14 @@ Ademas de Banco Macro y Banco Galicia, el sistema incluye un **modulo de configu
 
 ## Como se implementa
 
-### Fase 1 — Sistema operativo (ya implementado)
+### Fase 1 — Sistema operativo Demo (ya implementado)
 Carga manual de facturas y padron desde Excel. Ingesta de extractos de Macro y Galicia. Conciliacion directa. Gestion de reclamos con IA. Dashboard basico.
 
 ### Fase 2 — Integracion ERP y conciliacion avanzada
-Conexion al ERP para importacion automatica de facturas y actualizacion de estados. Motor de conciliacion por balance. Workflow de aprobacion antes de impactar el ERP.
+Conexion al ERP para importacion automatica de facturas y actualizacion de estados. Motor de conciliacion por balance. Workflow de aprobacion antes de impactar el ERP. Control de retenciones impositivas por cliente.
 
-### Fase 3 — Comunicaciones y dashboard ejecutivo
-Envio de mails y WhatsApp desde el sistema. Dashboard financiero completo. Chat con IA en lenguaje natural. Exportacion de reportes a Excel.
+### Fase 3 — Comunicaciones, dashboard ejecutivo y riesgo crediticio
+Envio de mails y WhatsApp desde el sistema. Dashboard financiero completo con chat IA. Exportacion de reportes a Excel. Alerta de riesgo crediticio via BCRA.
 
 ### Fase 4 — Produccion en la nube y seguridad
 Deploy en AWS con alta disponibilidad. Login con roles y permisos. Soporte para multiples bancos con configuracion parametrica. Backups automaticos.
@@ -120,6 +136,6 @@ Deploy en AWS con alta disponibilidad. Login con roles y permisos. Soporte para 
 
 **Sin dependencia de herramientas externas para operar:** el equipo de administracion no necesita salir del sistema para hacer seguimiento de cobranzas. Mail, WhatsApp, historial de reclamos y aprobacion de pagos estan integrados.
 
-**IA como asistente, no como reemplazo:** el sistema usa inteligencia artificial para sugerir acciones, redactar comunicaciones y responder preguntas sobre los datos. La decision final siempre la toma el equipo.
+**IA como asistente, no como reemplazo:** el sistema usa inteligencia artificial para sugerir acciones, redactar comunicaciones y responder preguntas sobre los datos. La decision final siempre la toma el equipo. 
 
 **Escalable desde el dia uno:** el sistema esta construido para crecer. Agregar un nuevo banco, conectar un nuevo ERP o incorporar nuevas funcionalidades no requiere reescribir lo que ya funciona.

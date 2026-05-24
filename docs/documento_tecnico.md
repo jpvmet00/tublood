@@ -2,16 +2,16 @@
 
 ## 1. Que resuelve este sistema
 
-TUBLOOD SA gestiona cobranzas de productos medicos (tubos, agujas, kits diagnostico) a hospitales, clinicas y distribuidores. El ciclo de cobranza tiene tres fricciones principales que este sistema resuelve:
+TUBLOOD SA gestiona productos medicos (tubos, agujas, kits diagnostico) a hospitales, clinicas y distribuidores. El ciclo de cobranza tiene tres fricciones principales que este sistema resuelve:
 
 **Friccion 1 — Identificacion manual de pagos**
-Los creditos bancarios llegan sin referencia de factura. El area de administracion cruzaba manualmente cada deposito contra el listado de facturas pendientes exportado del ERP. Con volumenes altos de clientes, este proceso toma horas por semana y tiene errores de asignacion.
+El area de administracion cruzaba manualmente cada deposito contra el listado de facturas pendientes exportado del ERP. Con volumenes altos de clientes, este proceso toma horas por semana.
 
 **Friccion 2 — Seguimiento disperso de deuda vencida**
-Las facturas vencidas vivian en planillas Excel separadas del historial de reclamos. No habia trazabilidad de cuantas veces se contacto al cliente ni que se le dijo, lo que generaba contactos duplicados o clientes sin seguimiento.
+No habia trazabilidad de cuantas veces se contacto al cliente ni que se le dijo, lo que generaba contactos duplicados o clientes sin seguimiento.
 
 **Friccion 3 — Falta de visibilidad financiera ejecutiva**
-No existia un dashboard centralizado que mostrara en tiempo real el saldo vencido total, la distribucion por cliente y el comportamiento historico de pagos.
+No existe un dashboard centralizado que mostrara en tiempo real el saldo vencido total, la distribucion por cliente y el comportamiento historico de pagos.
 
 ---
 
@@ -210,7 +210,90 @@ Ejemplos de preguntas que debe responder:
 - Patron: Text-to-SQL con validacion antes de ejecutar (no permitir DELETE/DROP).
 - La respuesta puede ser texto, tabla Streamlit o archivo descargable.
 
-### 5.6 Nuevos adapters de Home Banking
+### 5.6 Modulo de Retenciones
+
+**Que son las retenciones:**
+Cuando una empresa designada por AFIP como "agente de retencion" paga una factura, descuenta impuestos del pago y los deposita directamente al fisco. El proveedor (TUBLOOD) recibe menos de lo que dice la factura y una "constancia de retencion" por la diferencia.
+
+Ejemplo practico:
+```
+Factura:               $100.000 + $21.000 IVA = $121.000 total
+Retencion IVA (75%):  -$15.750
+Retencion Ganancias:  -$ 3.000
+Pago neto recibido:    $102.250  (diferencia del 15.5% del total)
+```
+
+El +-10% de tolerancia actual no alcanza para cubrir retenciones de clientes con tasas altas. Sin este modulo, las facturas de clientes que son agentes de retencion nunca concilian automaticamente.
+
+**Cambios en el modelo de datos:**
+
+```sql
+-- Agregar al padron
+padron (
+    ...campos actuales...,
+    es_agente_retencion     BOOLEAN DEFAULT FALSE,
+    pct_retencion_iva       DECIMAL(5,4),   -- ej: 0.1299 = 12.99%
+    pct_retencion_ganancias DECIMAL(5,4),
+    pct_retencion_iibb      DECIMAL(5,4)
+)
+
+-- Nueva tabla
+retenciones_recibidas (
+    id, conciliacion_id, tipo (IVA | GANANCIAS | IIBB),
+    monto, nro_constancia, fecha_recepcion
+)
+```
+
+**Logica de conciliacion con retenciones:**
+1. Si el CUIT es agente de retencion, calcular `pago_esperado = total_factura * (1 - suma_retenciones)`.
+2. Matchear el credito bancario contra `pago_esperado` con tolerancia +-2%.
+3. Registrar la diferencia como retenciones en la tabla correspondiente.
+4. El usuario puede ingresar el numero de constancia para trazabilidad contable.
+
+**Tipos de retencion a contemplar:**
+- RG AFIP 2854 — Retencion de IVA (agentes designados)
+- RG AFIP 830 — Retencion de Ganancias (actividad y monto dependiente)
+- IIBB provincial — Depende de la provincia del cliente
+
+### 5.7 Modulo de Riesgo Crediticio (Veraz / BCRA)
+
+**Objetivo:** al recibir un pago o gestionar facturas vencidas de un cliente, alertar si el CUIT tiene situacion financiera irregular.
+
+**Opciones de integracion por costo:**
+
+| Fuente | Costo | Datos disponibles | Recomendacion |
+|--------|-------|------------------|---------------|
+| BCRA Central de Deudores | Gratis | Situacion 1-6, deudas por banco, cheques rechazados | Implementar primero |
+| Nosis API | ~USD 80-200/mes | Scoring comercial, historial, juicios | Segunda fase si el cliente lo pide |
+| Equifax Argentina (Veraz) | Contractual, ~USD 200+/mes | Mas completo, requiere contrato | Solo si el volumen lo justifica |
+
+**API del BCRA (gratuita, publica, confirmada operativa):**
+
+```
+GET https://api.bcra.gob.ar/centraldeudores/v1.0/Deudas/{cuit}
+```
+
+Respuesta: situacion crediticia 1 (normal) a 6 (irrecuperable), con detalle por entidad financiera.
+
+**Integracion en el sistema:**
+- En la vista de facturas vencidas: columna "Riesgo" con semaforo (verde/amarillo/rojo).
+- En el padron: boton "Consultar BCRA", guarda fecha y resultado de la ultima consulta.
+- Al aprobar una conciliacion de un CUIT en situacion 3+: warning con bloqueo opcional.
+- Cache de 24 horas por CUIT para no saturar la API con consultas repetidas.
+
+**Modelo de datos:**
+
+```sql
+riesgo_crediticio (
+    id, cuit, fuente (BCRA | NOSIS | EQUIFAX),
+    situacion INT,          -- 1 a 6
+    detalle JSON,           -- respuesta completa de la API
+    fecha_consulta DATETIME,
+    activo BOOLEAN          -- la consulta mas reciente es la activa
+)
+```
+
+### 5.8 Nuevos adapters de Home Banking
 
 El patron actual de `BankAdapter` es correcto y extensible. Para cada nuevo banco se implementa una clase que hereda de `BankAdapter` y sobreescribe `parse()`.
 
@@ -250,8 +333,19 @@ Correr un modelo de lenguaje propio (ej. Llama en EC2 GPU) cuesta entre USD 300 
 | RDS PostgreSQL t3.micro | DB principal | USD 25 |
 | ECS Fargate (API + Frontend) | 0.5 vCPU, 1GB RAM cada uno | USD 30 |
 | S3 | Archivos subidos | USD 5 |
-| OpenAI API | ~500 llamadas/mes | USD 15-40 |
-| Total estimado | | USD 75-100/mes |
+| OpenAI API | ~500 analisis reclamos + 3000 preguntas chat | USD 2-5 |
+| BCRA API riesgo crediticio | Incluida en el servicio | USD 0 |
+| Total estimado | | USD 62-65/mes |
+
+**Detalle del costo de IA (gpt-4o-mini):**
+
+| Tipo de llamada | Tokens entrada | Tokens salida | Costo/llamada | 500 llamadas/mes |
+|----------------|---------------|---------------|---------------|-----------------|
+| Analisis reclamo | 1.500 | 1.200 | USD 0.001 | USD 0.50 |
+| Chat dashboard | 800 | 500 | USD 0.0004 | USD 0.20 |
+| Total 500 analisis + 3000 preguntas | | | | USD ~2/mes |
+
+El techo absoluto imposible de superar para una Pyme es USD 20/mes. Se puede trasladar al cliente a precio de API sin margen.
 
 ---
 
